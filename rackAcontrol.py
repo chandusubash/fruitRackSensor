@@ -13,30 +13,18 @@ import os,re,json,requests
 
 # Put your device token here. To get the token,
 # sign up at https://cloud4rpi.io and create a device.
-DEVICE_TOKEN = 'XXXXXXXXXXXXXX'
+DEVICE_TOKEN = 'VGLWkPveLpUtRjrX8m9B7bmi'
+#S3 bucket storage URL.
 url="https://a2fl82ml5m7c6e-ats.iot.us-east-1.amazonaws.com:8443/topics/data/"
 
 # Constants
-LED_PIN = 12
-# Change these values depending on your requirements.
 DATA_SENDING_INTERVAL = 60  # secs
-DIAG_SENDING_INTERVAL = 650  # secs
-POLL_INTERVAL = 0.5  # 500 ms
 
 LOCATIONS = [
     {'lat': 13.0017, 'lng': +77.6694},  # Bangalore
 ]
 
-# Configure GPIO library
-#GPIO.setmode(GPIO.BOARD)
-#GPIO.setup(LED_PIN, GPIO.OUT)
-
-
-# Handler for the button or switch variable
-#def led_control(value=None):
-#    GPIO.output(LED_PIN, value)
-#    return GPIO.input(LED_PIN)
-
+# The funtion picks up the id value from the json saved in raspberry Pi.
 def get_id():
         rack='rackA'
         fileArr = os.listdir(rack+'/')
@@ -50,6 +38,7 @@ def get_id():
                 identifier=fileJson["id"]
         return identifier
 
+# The funtion picks up the temperature value from the json saved in raspberry Pi.
 def get_temperature():
         rack='rackA'
         fileArr = os.listdir(rack+'/')
@@ -63,6 +52,7 @@ def get_temperature():
                 temp=fileJson["temperature"]
         return temp
 
+# The funtion picks up the humidity value from the json saved in raspberry Pi.
 def get_humidity():
         rack='rackA'
         fileArr = os.listdir(rack+'/')
@@ -76,6 +66,7 @@ def get_humidity():
                 humid=fileJson["Humidity"]
         return humid
 
+# The funtion picks up the pathogen presence value from the json saved in raspberry Pi.
 def get_pathogenpresence():
         rack='rackA'
         fileArr = os.listdir(rack+'/')
@@ -90,23 +81,18 @@ def get_pathogenpresence():
         return pathogen
 
 
-
+#Record the location of the sensor.
 def get_location():
     return random.choice(LOCATIONS)
 
 
 
 def main():
-    # Load w1 modules
-    #ds18b20.init_w1()
-
-    # Detect ds18b20 temperature sensors
-    #ds_sensors = ds18b20.DS18b20.find_all()
-
-    # Put variable declarations here
-    # Available types: 'bool', 'numeric', 'string', 'location'
+    #Configure the Rack information.
     rack='rackA'
     device = cloud4rpi.connect(DEVICE_TOKEN)
+
+    #The gateway node diagnostics information.
     diagnostics = {
         'CPU Temp': 33,
         'IP Address': "10.0.0.0",
@@ -114,18 +100,14 @@ def main():
         'Operating System': "Linux",
         'Client Version:': cloud4rpi.__version__,
     }
-
     device.declare_diag(diagnostics)
     device.publish_diag()
+
+    #The individual node data.
     variables = {'id': {
         'type': 'numeric',
         'bind': get_id
     },
-    # 'Outside Temp': {
-    #     'type': 'numeric' if ds_sensors else 'string',
-    #     'bind': ds_sensors[1] if ds_sensors else get_empty_value
-    # },
-
      'temperature': {
          'type': 'numeric',
          'bind': get_temperature
@@ -146,16 +128,15 @@ def main():
     device.declare(variables)
     device.publish_config()
     sleep(1)
-
+    # sleep for a second to make sure the configuration data is published.
+    #Pick the jsons recorded by the sensor.
     fileArr = os.listdir(rack+'/')
     for file in fileArr :
         if re.match('NE',file) :
-            #print(file)
+            #Load json file to a json dictionary
             fileContent = open(rack+'/'+file,'r')
-            #print(fileContent.read())
             fileJson=json.loads(fileContent.read())
             fileContent.close()
-            #print(fileJson["id"])
             os.rename(r''+rack+'/'+file,r''+rack+'/IE'+str(fileJson["id"])+'.json')
             headers = {'content-type': 'application/json'}
             request = requests.post(url+rack+'/'+str(fileJson["id"])+'?qos=1', data = json.dumps(fileJson),headers=headers, cert=('bf0d06941b-certificate.pem.crt', 'bf0d06941b-private.pem.key'), verify='AmazonRootCA1.pem.txt')
