@@ -13,7 +13,7 @@ import os,re,json,requests
 
 # Put your device token here. To get the token,
 # sign up at https://cloud4rpi.io and create a device.
-DEVICE_TOKEN = 'VGLWkPveLpUtRjrX8m9B7bmi'
+DEVICE_TOKEN = 'XXXXXXXXXXXXXX'
 url="https://a2fl82ml5m7c6e-ats.iot.us-east-1.amazonaws.com:8443/topics/data/"
 
 # Constants
