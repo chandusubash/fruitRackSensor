@@ -11,8 +11,8 @@ file = open('idGenerator.txt','r')
 n = int(file.read())
 file.close()
 n=n+1
-rackList = ["rackA","rackB","rackC","rackD","rackE"]
-for _ in range(10) :
+rackList = ["rackA"]
+for _ in range(100) :
     for rack in rackList :
         dictRack = {     "id": n, "temperature": float(random.randrange(155, 400))/10 ,"Humidity" : randint(1, 100), "pathogenPresence" : randint(0, 10),"time" : currentTime.strftime("%m-%d-%Y %H:%M:%S") }
         jsonRack = json.dumps(dictRack)
